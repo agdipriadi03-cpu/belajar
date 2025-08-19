@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <title>Schedule Date </title>
+  <style>
+    :root{
+      --pink-50:#fff1f5;
+      --pink-100:#ffe4ec;
+      --pink-200:#ffcadb;
+      --pink-300:#ff9fc0;
+      --pink-400:#ff78aa;
+      --pink-500:#ff4d92;
+      --pink-600:#ef2e7b;
+      --pink-700:#cc2268;
+      --pink-800:#a51e56;
+      --pink-900:#7b1741;
+      --card-bg: #ffffffee;
+      --text:#3a2b33;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, var(--pink-100), transparent),
+                  radial-gradient(800px 400px at 90% 0%, var(--pink-200), transparent),
+                  linear-gradient(180deg, #fff, var(--pink-50));
+      overflow-x:hidden;
+    }
+
+    /* Floating hearts background */
+    .bg-hearts{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0}
+    .bg-hearts span{
+      position:absolute; display:block; width:18px; height:18px; transform:rotate(45deg);
+      background:var(--pink-300); opacity:.25; filter:blur(.2px);
+      animation: floatUp linear infinite;
+    }
+    .bg-hearts span::before, .bg-hearts span::after{
+      content:""; position:absolute; width:100%; height:100%; background:inherit; border-radius:50%;
+    }
+    .bg-hearts span::before{ top:-50% }
+    .bg-hearts span::after{ left:-50% }
+    @keyframes floatUp{
+      to{ transform: translateY(-120vh) rotate(45deg); }
+    }
+
+    /* Start screen */
+    .start-screen{
+      position:fixed; inset:0; background:linear-gradient(180deg, var(--pink-200), var(--pink-100));
+      display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:999;
+      text-align:center; padding:20px;
+    }
+    .start-screen h1{ font-size:1.8rem; color:var(--pink-800); margin-bottom:14px }
+    .start-btn{
+      padding:12px 20px; border:none; border-radius:20px; font-weight:700;
+      background:linear-gradient(90deg, var(--pink-500), var(--pink-600)); color:#fff; cursor:pointer;
+      box-shadow:0 10px 25px rgba(239,46,123,.35);
+    }
+    .start-btn:active{ transform:translateY(1px) }
+
+    header{ position:relative; z-index:1; text-align:center; padding:24px 16px 12px; }
+    .title{ display:inline-flex; align-items:center; gap:12px; padding:10px 18px; border-radius:999px;
+      background:linear-gradient(90deg, var(--pink-400), var(--pink-600)); color:white;
+      box-shadow: 0 10px 25px rgba(239,46,123,.35); font-weight:700; letter-spacing:.3px; }
+
+    .container{position:relative; z-index:1; max-width:1050px; margin:24px auto 56px; padding:0 16px}
+
+    /* Tabs */
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:14px}
+    .tab{ cursor:pointer; user-select:none; padding:10px 14px; border-radius:14px; border:1px solid var(--pink-200);
+      background:#fff; color:#ff4d92; font-weight:600; transition:.2s; box-shadow:0 3px 10px rgba(255,77,146,.08) }
+    .tab[aria-selected="true"]{ background:var(--pink-500); color:#fff; border-color:transparent; box-shadow:0 8px 20px rgba(255,77,146,.35) }
+
+    .day{ display:none }
+    .day.active{ display:block; animation:fade .35s ease-out }
+    @keyframes fade{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
+
+    /* Card timeline */
+    .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:18px }
+    .col{ grid-column: span 12 }
+    @media(min-width:700px){ .col{ grid-column: span 6 } }
+    @media(min-width:980px){ .col{ grid-column: span 4 } }
+
+    .card{ position:relative; background:var(--card-bg); border:1px solid var(--pink-100);
+      border-radius:22px; padding:18px 16px 16px; backdrop-filter: blur(6px);
+      box-shadow: 0 10px 30px rgba(#ff4d92); }
+    .card .time{ display:inline-block; font-weight:700; color:var(--pink-800); background:var(--pink-100); padding:6px 10px; border-radius:999px }
+    .card h3{ margin:10px 0 6px; font-size:1.05rem }
+    .card p{ margin:0; color:#ff4d92 }
+
+    .heart-dot{ position:absolute; top:-10px; right:-10px; width:28px; height:28px; transform:rotate(45deg); background:var(--pink-400); box-shadow:0 6px 14px rgba(255,121,170,.5)}
+    .heart-dot::before,.heart-dot::after{ content:""; position:absolute; width:100%; height:100%; background:inherit; border-radius:50%}
+    .heart-dot::before{ top:-50% }
+    .heart-dot::after{ left:-50% }
+
+    /* Dresscode Card */
+    .dresscode-card{
+      display:flex; align-items:center; gap:14px;
+      max-width: 420px;
+      margin: 0 auto 22px;
+      background: #fff; border:2px solid #dceeff;
+      border-radius:18px; padding:16px 18px; margin-bottom:22px;
+      box-shadow:0 6px 18px rgba(#ff4d92);
+    }
+    .dresscode-card .time{
+      background: var(--pink-300);
+      color: var(--pink-800);
+      padding:6px 12px; border-radius:999px; font-weight:700;
+    }
+    .dresscode-card h3{ margin:8px 0 4px; color:#ff4d92 }
+
+    .dresscode-icon{
+      width:40px; height:40px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff, #ff4d92);
+      flex-shrink:0; box-shadow:0 4px 12px rgba(#ff4d92);
+    }
+    #day3 .grid {
+    display: flex;
+    justify-content: center; /* center secara horizontal */
+}
+    #day3 .grid .card {
+    max-width: 400px;
+}
+
+    /* Hari 4: center the single card */
+    #day4 .grid{
+        display: flex;
+        justify-content: center;
+    }
+    #day4 .grid .card{
+        max-width: 400px;
+    }
+
+    @media print{
+      .tabs, .bg-hearts, .start-screen { display:none !important }
+      body{ background:#fff }
+      .day{ display:block !important; break-inside:avoid }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-hearts" aria-hidden="true"></div>
+
+  <!-- Start Screen -->
+  <div class="start-screen" id="startScreen">
+    <h1> Hello, Honey </h1>
+    <h1>Don't forget our schedule date!</h1>
+    <button class="start-btn" onclick="startApp()">Click</button>
+    <h1>
+  <span class="glyphicon glyphicon-calendar"></span>
+  Save the Date
+</h1>
+  <h1> 01-03 September 2025 </h1>
+  </div>
+    
+  <header>
+    <div class="title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 21s-7.5-4.35-10-8.8C-0.5 7.73 2.61 3 7.2 3c2.11 0 3.59 1.06 4.8 2.57C13.21 4.06 14.69 3 16.8 3 21.39 3 24.5 7.73 22 12.2 19.5 16.65 12 21 12 21Z" fill="white"/></svg>
+      <span>Schedule Date </span>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" aria-controls="day1" id="tab1">Day 1</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="day2" id="tab2">Day 2</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="day3" id="tab3">Day 3</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="day4" id="tab4">Optional Place</button>
+    </div>
+
+    <!-- Hari 1 -->
+    <section id="day1" class="day active" role="tabpanel" aria-labelledby="tab1">
+      <div class="dresscode-card">
+        <div class="dresscode-icon"></div>
+        <div>
+          <span class="time">Dresscode For The Day</span>
+          <h3>Jeans Biru + Baju Putih </h3>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 1</span>
+          <h2 style="color:#ff4d92;">UD Djaya Coffee </h2>
+          <h4>Jl. Slamet Riyadi No.103, RT.002/RW.03, Kauman, Kec. Ps. Kliwon, Kota Surakarta, Jawa Tengah 57118</h4>
+        </article>
+
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 2</span>
+          <h2 style="color:#ff4d92;">Lokananta </h2>
+          <h4>Jl. A. Yani No.379 A, Kerten, Kec. Laweyan, Kota Surakarta, Jawa Tengah </h4>
+        </article>
+        
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 3</span>
+          <h2 style="color:#ff4d92;">Bosu Rice</h2>
+          <h4>CQXG+67Q, Jl. Garuda Mas, Geduren, Gonilan, Kec. Laweyan, Kabupaten Sukoharjo, Jawa Tengah</h4>
+        </article>
+      </div>
+    </section>
+
+    <!-- Hari 2 -->
+    <section id="day2" class="day" role="tabpanel" aria-labelledby="tab2">
+      <div class="dresscode-card">
+        <div class="dresscode-icon"></div>
+        <div>
+          <span class="time">Dresscode For The Day</span>
+          <h3>Celana Hitam + Baju Biru</h3>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 1</span>
+          <h2 style="color:#ff4d92;">Solo Square + Timezone date</h2>
+          <h4>Jl. Slamet Riyadi No.451-455, Pajang, Kec. Laweyan, Kota Surakarta, Jawa Tengah 57146</h4>
+        </article>
+
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 2</span>
+          <h2 style="color:#ff4d92;">Solo Square + XXI movie date </h2>
+          <h4>Jl. Slamet Riyadi No.451-455, Pajang, Kec. Laweyan, Kota Surakarta, Jawa Tengah 57146 </h4>
+        </article>
+        
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 3</span>
+          <h2 style="color:#ff4d92;">Kampung Batik Kauman</h2>
+          <h4>Jl. Trisula III No.1, Kauman, Kec. Ps. Kliwon, Kota Surakarta, Jawa Tengah 57112</h4>
+        </article>
+      </div>
+    </section>
+
+    <!-- Hari 3 -->
+    <section id="day3" class="day" role="tabpanel" aria-labelledby="tab3">
+      <div class="dresscode-card">
+        <div class="dresscode-icon"></div>
+        <div>
+          <span class="time">Dresscode For The Evening</span>
+          <h3>Outfit apa aja</h3>
+          
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 1</span>
+          <h2 style="color:#ff4d92;">Breakfast Together + anterin aku kalo bisa</h2>
+          <h4></h4>
+        </article>
+        
+      </div>
+    </section>
+
+    <!-- Hari 4 -->
+    <section id="day4" class="day" role="tabpanel" aria-labelledby="tab4">
+      <div class="dresscode-card">
+        <div class="dresscode-icon"></div>
+        <div>
+          <span class="time">Dresscode Malam Hari : Day 1 Or 2</span>
+          <h3>Beruang Cokelat : Baju abu + Celana Hitam </h3>
+          <br>
+          <h3>Beruang Putih : pake kerudung abu + Baju dan bawah Hitam</h3>
+          </h3>
+        </div>
+      </div>
+       <div class="grid">
+        <article class="card col">
+          <div class="heart-dot"></div>
+          <span class="time"><span class="glyphicon">&#xe062;</span> Location 1</span>
+          <h2 style="color:#ff4d92;">T'Coral Rumah Makan</h2>
+          <h4>33, Jl. Semarang - Surakarta Jl. Ir. Sutami No.50, Pucangsawit, Kec. Jebres, Kota Surakarta, Jawa Tengah 57125</h4>
+        </article>
+        <div class="grid">
+        
+      </div>
+    </section>
+
+  </main>
+  
+  <script>
+    const bg = document.querySelector('.bg-hearts');
+    const n = 24;
+    for(let i=0;i<n;i++){
+      const s = document.createElement('span');
+      const size = Math.random()*18+10;
+      s.style.width = s.style.height = size+"px";
+      s.style.left = Math.random()*100+"%";
+      s.style.bottom = (-10 - Math.random()*30) + "px";
+      const dur = 10 + Math.random()*16;
+      s.style.animationDuration = dur + 's';
+      s.style.animationDelay = (-Math.random()*dur) + 's';
+      s.style.opacity = 0.15 + Math.random()*0.25;
+      s.style.background = `hsl(${330+Math.random()*20} 90% ${70+Math.random()*10}%)`;
+      bg.appendChild(s);
+    }
+
+    const tabs = document.querySelectorAll('.tab');
+    const days = document.querySelectorAll('.day');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(tb => tb.setAttribute('aria-selected','false'));
+      t.setAttribute('aria-selected','true');
+      days.forEach(d => d.classList.remove('active'));
+      const el = document.getElementById(t.getAttribute('aria-controls'));
+      el.classList.add('active');
+    }));
+
+    function startApp(){
+      document.getElementById('startScreen').style.display='none';
+    }
+  </script>
+</body>
+</html>
